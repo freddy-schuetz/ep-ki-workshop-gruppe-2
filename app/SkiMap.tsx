@@ -60,10 +60,33 @@ function KarteSchliessen({ onClose }: { onClose: () => void }) {
   return null;
 }
 
+// Bild-Cache: wird beim Start vorgeladen
+type BildCache = Record<string, [string | null, string | null]>;
+
 export default function SkiMap() {
   const [ausgewaehlt, setAusgewaehlt] = useState<Gebiet | null>(null);
   const [bilder, setBilder] = useState<(string | null)[]>([null, null]);
   const [laedt, setLaedt] = useState(false);
+  const [bildCache, setBildCache] = useState<BildCache>({});
+
+  // Alle Bilder beim Start im Hintergrund vorladen
+  useEffect(() => {
+    const gebiete = skiData.gebiete.filter((g) => g.id !== "soelden" && g.id !== "hintertux");
+    gebiete.forEach((g) => {
+      Promise.allSettled([
+        kiBild(`Beeindruckende Bergsicht auf das Skigebiet ${g.name} in ${g.land}, schneebedeckte Gipfel, blauer Winterhimmel, Panorama`),
+        kiBild(`Junge fröhliche Menschen beim Après-Ski in ${g.name} in ${g.land}, typische Bergbar-Atmosphäre, Winterkleidung, realistisch, lebendig`),
+      ]).then(([b, a]) => {
+        setBildCache((prev) => ({
+          ...prev,
+          [g.id]: [
+            b.status === "fulfilled" ? b.value : null,
+            a.status === "fulfilled" ? a.value : null,
+          ],
+        }));
+      });
+    });
+  }, []);
   const [temp, setTemp] = useState<{ berg: number; tal: number } | null>(null);
   const [slogan, setSlogan] = useState<string | null>(null);
   const [aktivBild, setAktivBild] = useState(0);
@@ -89,39 +112,26 @@ export default function SkiMap() {
     setSprache(null);
   }
 
-  async function markerKlick(g: Gebiet) {
+  function markerKlick(g: Gebiet) {
     setAusgewaehlt(g);
-    setBilder([null, null]);
     setTemp(null);
     setSlogan(null);
     setAktivBild(0);
     setAudio(null);
     setSprache(null);
-    setLaedt(true);
+    setLaedt(false);
+
+    // Bilder sofort aus Cache nehmen
+    setBilder(bildCache[g.id] ?? [null, null]);
 
     fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
-
-    // Musik sofort starten
     setAudio(musikFuerGebiet(g.land));
-    // Sprachansage im Hintergrund generieren
     kiText(
       `Schreib einen kurzen, begeisterten Willkommensgruß (2 Sätze) für das Skigebiet "${g.name}" in ${g.land}. Erwähne das Besondere: ${g.highlight}. Sprich die Zuhörer direkt an, im Stil von E&P Reisen – jung, energetisch. Nur den Text.`
     ).then((text) => kiStimme(text)).then(setSprache).catch(() => {});
-
     kiText(
       `Schreib einen kurzen, mitreißenden Werbe-Slogan (max. 12 Wörter) für das Skigebiet "${g.name}" in ${g.land}. Highlight: ${g.highlight}. Der Slogan soll zum Reiseveranstalter E&P Reisen passen – jung, energetisch, budgetbewusst aber hochwertig. Nur den Slogan, ohne Anführungszeichen.`
     ).then(setSlogan).catch(() => {});
-
-    // Beide Bilder parallel laden
-    const [bergBild, apresSkiBild] = await Promise.allSettled([
-      kiBild(`Beeindruckende Bergsicht auf das Skigebiet ${g.name} in ${g.land}, schneebedeckte Gipfel, blauer Winterhimmel, Panorama`),
-      kiBild(`Junge fröhliche Menschen beim Après-Ski in ${g.name} in ${g.land}, typische Bergbar-Atmosphäre, Winterkleidung, realistisch, lebendig`),
-    ]);
-    setBilder([
-      bergBild.status === "fulfilled" ? bergBild.value : null,
-      apresSkiBild.status === "fulfilled" ? apresSkiBild.value : null,
-    ]);
-    setLaedt(false);
   }
 
   const bildLabels = ["🏔️ Bergsicht", "🎉 Après-Ski"];
