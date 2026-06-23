@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useState, useEffect } from "react";
 import skiData from "../data/skigebiete.json";
-import { kiBild, kiText, kiStimme } from "../lib/kreativ";
+import { kiBild, kiText } from "../lib/kreativ";
 
 async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
   const talHoehe = Math.max(800, bergHoehe - 800);
@@ -28,6 +28,24 @@ const icon = L.divIcon({
 });
 
 type Gebiet = (typeof skiData.gebiete)[0];
+
+// Passende Hintergrundmusik je nach Land/Stimmung
+const MUSIK: Record<string, string> = {
+  at: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  ch: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+  fr: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+  it: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+  chfr: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+};
+
+function musikFuerGebiet(land: string): string {
+  if (land.includes("Österreich")) return MUSIK.at;
+  if (land.includes("Schweiz") && land.includes("Frankreich")) return MUSIK.chfr;
+  if (land.includes("Schweiz")) return MUSIK.ch;
+  if (land.includes("Frankreich")) return MUSIK.fr;
+  if (land.includes("Italien")) return MUSIK.it;
+  return MUSIK.at;
+}
 
 function flagge(land: string) {
   if (land.includes("Österreich")) return "🇦🇹";
@@ -81,10 +99,8 @@ export default function SkiMap() {
 
     fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
 
-    // Audio-Ansage: kurzer Willkommensgruß passend zum Gebiet
-    kiText(
-      `Schreib einen kurzen, begeisterten Willkommensgruß (2 Sätze) für das Skigebiet "${g.name}" in ${g.land}. Erwähne das Besondere: ${g.highlight}. Sprich die Zuhörer direkt an, im Stil von E&P Reisen – jung, energetisch. Nur den Text, kein "Hallo" davor.`
-    ).then((text) => kiStimme(text)).then(setAudio).catch(() => {});
+    // Passende Musik sofort setzen
+    setAudio(musikFuerGebiet(g.land));
 
     kiText(
       `Schreib einen kurzen, mitreißenden Werbe-Slogan (max. 12 Wörter) für das Skigebiet "${g.name}" in ${g.land}. Highlight: ${g.highlight}. Der Slogan soll zum Reiseveranstalter E&P Reisen passen – jung, energetisch, budgetbewusst aber hochwertig. Nur den Slogan, ohne Anführungszeichen.`
