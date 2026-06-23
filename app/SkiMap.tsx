@@ -20,11 +20,11 @@ async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
 }
 
 const icon = L.divIcon({
-  html: "📍",
+  html: "<span style='font-size:28px;line-height:1'>❄️</span>",
   className: "",
   iconSize: [30, 30],
-  iconAnchor: [15, 30],
-  popupAnchor: [0, -30],
+  iconAnchor: [15, 15],
+  popupAnchor: [0, -15],
 });
 
 type Gebiet = (typeof skiData.gebiete)[0];
