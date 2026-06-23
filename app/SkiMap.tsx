@@ -29,22 +29,21 @@ const icon = L.divIcon({
 
 type Gebiet = (typeof skiData.gebiete)[0];
 
-// Passende Hintergrundmusik je nach Land/Stimmung
-const MUSIK: Record<string, string> = {
-  at: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-  ch: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-  fr: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-  it: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-  chfr: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+// Passende Hintergrundmusik je nach Land
+const MUSIK = {
+  apresski: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",  // Österreich: Après-Ski
+  alphorn:  "https://upload.wikimedia.org/wikipedia/commons/e/e8/Alphorn_im_Muotathal.ogg", // Schweiz: Alphorn
+  frankreich: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+  italien:    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
 };
 
 function musikFuerGebiet(land: string): string {
-  if (land.includes("Österreich")) return MUSIK.at;
-  if (land.includes("Schweiz") && land.includes("Frankreich")) return MUSIK.chfr;
-  if (land.includes("Schweiz")) return MUSIK.ch;
-  if (land.includes("Frankreich")) return MUSIK.fr;
-  if (land.includes("Italien")) return MUSIK.it;
-  return MUSIK.at;
+  if (land.includes("Österreich")) return MUSIK.apresski;
+  if (land.includes("Schweiz") && land.includes("Frankreich")) return MUSIK.alphorn;
+  if (land.includes("Schweiz")) return MUSIK.alphorn;
+  if (land.includes("Frankreich")) return MUSIK.frankreich;
+  if (land.includes("Italien")) return MUSIK.italien;
+  return MUSIK.apresski;
 }
 
 function flagge(land: string) {
