@@ -5,14 +5,12 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import skiData from "../data/skigebiete.json";
 
-// Leaflet-Standard-Icon-Fix für Next.js
-const icon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
+const icon = L.divIcon({
+  html: "📍",
+  className: "",
+  iconSize: [30, 30],
+  iconAnchor: [15, 30],
+  popupAnchor: [0, -30],
 });
 
 export default function SkiMap() {
