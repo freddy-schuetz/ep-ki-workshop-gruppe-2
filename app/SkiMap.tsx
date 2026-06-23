@@ -55,7 +55,7 @@ export default function SkiMap() {
           attribution="© OpenStreetMap"
         />
         <KarteSchliessen onClose={() => { setAusgewaehlt(null); setBild(null); }} />
-        {skiData.gebiete.map((g) => (
+        {skiData.gebiete.filter((g) => g.id !== "soelden").map((g) => (
           <Marker
             key={g.id}
             position={[g.lat, g.lng]}
