@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useState, useEffect } from "react";
 import skiData from "../data/skigebiete.json";
-import { kiBild, kiText } from "../lib/kreativ";
+import { kiBild, kiText, kiStimme } from "../lib/kreativ";
 
 async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
   const talHoehe = Math.max(800, bergHoehe - 800);
@@ -50,6 +50,7 @@ export default function SkiMap() {
   const [temp, setTemp] = useState<{ berg: number; tal: number } | null>(null);
   const [slogan, setSlogan] = useState<string | null>(null);
   const [aktivBild, setAktivBild] = useState(0);
+  const [audio, setAudio] = useState<string | null>(null);
 
   // Automatisch zwischen Bild 1 und 2 wechseln
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function SkiMap() {
     setSlogan(null);
     setTemp(null);
     setAktivBild(0);
+    setAudio(null);
   }
 
   async function markerKlick(g: Gebiet) {
@@ -74,9 +76,16 @@ export default function SkiMap() {
     setTemp(null);
     setSlogan(null);
     setAktivBild(0);
+    setAudio(null);
     setLaedt(true);
 
     fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
+
+    // Audio-Ansage: kurzer Willkommensgruß passend zum Gebiet
+    kiText(
+      `Schreib einen kurzen, begeisterten Willkommensgruß (2 Sätze) für das Skigebiet "${g.name}" in ${g.land}. Erwähne das Besondere: ${g.highlight}. Sprich die Zuhörer direkt an, im Stil von E&P Reisen – jung, energetisch. Nur den Text, kein "Hallo" davor.`
+    ).then((text) => kiStimme(text)).then(setAudio).catch(() => {});
+
     kiText(
       `Schreib einen kurzen, mitreißenden Werbe-Slogan (max. 12 Wörter) für das Skigebiet "${g.name}" in ${g.land}. Highlight: ${g.highlight}. Der Slogan soll zum Reiseveranstalter E&P Reisen passen – jung, energetisch, budgetbewusst aber hochwertig. Nur den Slogan, ohne Anführungszeichen.`
     ).then(setSlogan).catch(() => {});
@@ -197,6 +206,9 @@ export default function SkiMap() {
               <p className="mt-3 text-xs text-night/40 animate-pulse">✍️ KI schreibt Slogan…</p>
             )}
             <p className="mt-2 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
+            {audio && (
+              <audio src={audio} autoPlay controls className="mt-3 w-full h-8" />
+            )}
           </div>
         </div>
       )}
