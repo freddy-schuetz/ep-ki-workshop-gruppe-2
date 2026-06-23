@@ -7,6 +7,19 @@ import { useState } from "react";
 import skiData from "../data/skigebiete.json";
 import { kiBild } from "../lib/kreativ";
 
+async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
+  // Talstation: ~800m unter Gipfel, mindestens auf 800m
+  const talHoehe = Math.max(800, bergHoehe - 800);
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m&elevation=${bergHoehe}&temperature_unit=celsius&forecast_days=1`;
+  const urlTal = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m&elevation=${talHoehe}&temperature_unit=celsius&forecast_days=1`;
+  const [bergRes, talRes] = await Promise.all([fetch(url), fetch(urlTal)]);
+  const [bergData, talData] = await Promise.all([bergRes.json(), talRes.json()]);
+  return {
+    berg: Math.round(bergData.current.temperature_2m),
+    tal: Math.round(talData.current.temperature_2m),
+  };
+}
+
 const icon = L.divIcon({
   html: "📍",
   className: "",
@@ -35,11 +48,14 @@ export default function SkiMap() {
   const [ausgewaehlt, setAusgewaehlt] = useState<Gebiet | null>(null);
   const [bild, setBild] = useState<string | null>(null);
   const [laedt, setLaedt] = useState(false);
+  const [temp, setTemp] = useState<{ berg: number; tal: number } | null>(null);
 
   async function markerKlick(g: Gebiet) {
     setAusgewaehlt(g);
     setBild(null);
+    setTemp(null);
     setLaedt(true);
+    fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
     try {
       const url = await kiBild(
         `Beeindruckende Bergsicht auf das Skigebiet ${g.name} in ${g.land}, schneebedeckte Gipfel, blauer Winterhimmel, Panorama`
@@ -108,7 +124,22 @@ export default function SkiMap() {
                 <div className="text-xs text-night/60">Höhe (m)</div>
               </div>
             </div>
-            <p className="mt-3 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
+            {temp && (
+            <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-lg bg-blue-50 px-3 py-2 text-center">
+                <div className="text-xl font-black text-night">{temp.berg}°C</div>
+                <div className="text-xs text-night/60">🏔️ Bergstation</div>
+              </div>
+              <div className="rounded-lg bg-green-50 px-3 py-2 text-center">
+                <div className="text-xl font-black text-night">{temp.tal}°C</div>
+                <div className="text-xs text-night/60">🏘️ Talstation</div>
+              </div>
+            </div>
+          )}
+          {!temp && (
+            <p className="mt-2 text-xs text-night/40 animate-pulse">🌡️ Temperaturen werden geladen…</p>
+          )}
+          <p className="mt-3 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
           </div>
         </div>
       )}
