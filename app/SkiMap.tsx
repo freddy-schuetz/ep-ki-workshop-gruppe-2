@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useState, useEffect } from "react";
 import skiData from "../data/skigebiete.json";
-import { kiBild, kiText } from "../lib/kreativ";
+import { kiBild, kiText, kiStimme } from "../lib/kreativ";
 
 async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
   const talHoehe = Math.max(800, bergHoehe - 800);
@@ -69,6 +69,7 @@ export default function SkiMap() {
   const [slogan, setSlogan] = useState<string | null>(null);
   const [aktivBild, setAktivBild] = useState(0);
   const [audio, setAudio] = useState<string | null>(null);
+  const [sprache, setSprache] = useState<string | null>(null);
 
   // Automatisch zwischen Bild 1 und 2 wechseln
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function SkiMap() {
     setTemp(null);
     setAktivBild(0);
     setAudio(null);
+    setSprache(null);
   }
 
   async function markerKlick(g: Gebiet) {
@@ -95,12 +97,17 @@ export default function SkiMap() {
     setSlogan(null);
     setAktivBild(0);
     setAudio(null);
+    setSprache(null);
     setLaedt(true);
 
     fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
 
-    // Passende Musik sofort setzen
+    // Musik sofort starten
     setAudio(musikFuerGebiet(g.land));
+    // Sprachansage im Hintergrund generieren
+    kiText(
+      `Schreib einen kurzen, begeisterten Willkommensgruß (2 Sätze) für das Skigebiet "${g.name}" in ${g.land}. Erwähne das Besondere: ${g.highlight}. Sprich die Zuhörer direkt an, im Stil von E&P Reisen – jung, energetisch. Nur den Text.`
+    ).then((text) => kiStimme(text)).then(setSprache).catch(() => {});
 
     kiText(
       `Schreib einen kurzen, mitreißenden Werbe-Slogan (max. 12 Wörter) für das Skigebiet "${g.name}" in ${g.land}. Highlight: ${g.highlight}. Der Slogan soll zum Reiseveranstalter E&P Reisen passen – jung, energetisch, budgetbewusst aber hochwertig. Nur den Slogan, ohne Anführungszeichen.`
@@ -223,7 +230,16 @@ export default function SkiMap() {
             )}
             <p className="mt-2 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
             {audio && (
-              <audio src={audio} autoPlay controls className="mt-3 w-full h-8" />
+              <audio src={audio} autoPlay loop
+                ref={(el) => { if (el) el.volume = 0.25; }}
+                className="hidden"
+              />
+            )}
+            {sprache && (
+              <audio src={sprache} autoPlay controls className="mt-3 w-full h-8" />
+            )}
+            {!sprache && (
+              <p className="mt-2 text-xs text-night/40 animate-pulse">🎙️ Sprachansage wird vorbereitet…</p>
             )}
           </div>
         </div>
