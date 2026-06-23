@@ -30,11 +30,14 @@ export default function Home() {
       {/* Header */}
       <header className="bg-brand px-6 py-3 shadow-md">
         <div className="flex items-center justify-between">
-          <img
-            src="https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=100063511363168"
-            alt="E&P Reisen Logo"
-            className="h-12 w-12 rounded-lg object-contain bg-white p-1"
-          />
+          <div className="flex items-center gap-1 rounded-lg bg-white px-3 py-1.5">
+            <span className="text-2xl font-black text-brand">E</span>
+            <span className="text-2xl font-black text-brand-accent">&amp;</span>
+            <span className="text-2xl font-black text-brand">P</span>
+            <span className="ml-1 text-xs font-semibold text-night/60 leading-tight">
+              Reisen<br />Events
+            </span>
+          </div>
           <div className="text-center">
             <h1 className="text-2xl font-black text-white">📍 E&amp;P Skigebiete</h1>
             <p className="text-xs text-white/70">Klick auf einen Marker für alle Infos</p>
