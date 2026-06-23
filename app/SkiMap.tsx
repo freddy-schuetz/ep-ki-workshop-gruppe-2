@@ -17,6 +17,15 @@ const icon = L.divIcon({
 
 type Gebiet = (typeof skiData.gebiete)[0];
 
+function flagge(land: string) {
+  if (land.includes("Österreich")) return "🇦🇹";
+  if (land.includes("Schweiz") && land.includes("Frankreich")) return "🇨🇭🇫🇷";
+  if (land.includes("Schweiz")) return "🇨🇭";
+  if (land.includes("Frankreich")) return "🇫🇷";
+  if (land.includes("Italien")) return "🇮🇹";
+  return "🏳️";
+}
+
 function KarteSchliessen({ onClose }: { onClose: () => void }) {
   useMapEvents({ click: onClose });
   return null;
@@ -88,7 +97,7 @@ export default function SkiMap() {
               ✕
             </button>
             <h2 className="pr-6 text-lg font-black text-night">{ausgewaehlt.name}</h2>
-            <p className="mt-1 text-sm font-medium text-brand">{ausgewaehlt.land}</p>
+            <p className="mt-1 text-sm font-medium text-brand">{flagge(ausgewaehlt.land)} {ausgewaehlt.land}</p>
             <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
               <div className="rounded-lg bg-ice px-3 py-2 text-center">
                 <div className="text-xl font-black text-night">{ausgewaehlt.pistenKm}</div>
