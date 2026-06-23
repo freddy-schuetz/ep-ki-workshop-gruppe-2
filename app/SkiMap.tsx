@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useState } from "react";
 import skiData from "../data/skigebiete.json";
-import { kiBild } from "../lib/kreativ";
+import { kiBild, kiText } from "../lib/kreativ";
 
 async function fetchTemperaturen(lat: number, lng: number, bergHoehe: number) {
   // Talstation: ~800m unter Gipfel, mindestens auf 800m
@@ -49,13 +49,18 @@ export default function SkiMap() {
   const [bild, setBild] = useState<string | null>(null);
   const [laedt, setLaedt] = useState(false);
   const [temp, setTemp] = useState<{ berg: number; tal: number } | null>(null);
+  const [slogan, setSlogan] = useState<string | null>(null);
 
   async function markerKlick(g: Gebiet) {
     setAusgewaehlt(g);
     setBild(null);
     setTemp(null);
+    setSlogan(null);
     setLaedt(true);
     fetchTemperaturen(g.lat, g.lng, g.hoeheMeter).then(setTemp).catch(() => {});
+    kiText(
+      `Schreib einen kurzen, mitreißenden Werbe-Slogan (max. 12 Wörter) für das Skigebiet "${g.name}" in ${g.land}. Highlight: ${g.highlight}. Der Slogan soll zum Reiseveranstalter E&P Reisen passen – jung, energetisch, budgetbewusst aber hochwertig. Nur den Slogan, ohne Anführungszeichen.`
+    ).then(setSlogan).catch(() => {});
     try {
       const url = await kiBild(
         `Beeindruckende Bergsicht auf das Skigebiet ${g.name} in ${g.land}, schneebedeckte Gipfel, blauer Winterhimmel, Panorama`
@@ -79,7 +84,7 @@ export default function SkiMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution="© OpenStreetMap"
         />
-        <KarteSchliessen onClose={() => { setAusgewaehlt(null); setBild(null); }} />
+        <KarteSchliessen onClose={() => { setAusgewaehlt(null); setBild(null); setSlogan(null); }} />
         {skiData.gebiete.filter((g) => g.id !== "soelden" && g.id !== "hintertux").map((g) => (
           <Marker
             key={g.id}
@@ -139,7 +144,14 @@ export default function SkiMap() {
           {!temp && (
             <p className="mt-2 text-xs text-night/40 animate-pulse">🌡️ Temperaturen werden geladen…</p>
           )}
-          <p className="mt-3 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
+          {slogan ? (
+            <p className="mt-3 rounded-lg bg-brand px-3 py-2 text-center text-sm font-bold italic text-white">
+              „{slogan}"
+            </p>
+          ) : (
+            <p className="mt-3 text-xs text-night/40 animate-pulse">✍️ KI schreibt Slogan…</p>
+          )}
+          <p className="mt-2 text-sm text-night/70">✨ {ausgewaehlt.highlight}</p>
           </div>
         </div>
       )}
